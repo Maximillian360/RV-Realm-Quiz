@@ -18,23 +18,26 @@
         android:layout_height="wrap_content"
         android:hint="Author Name"/>
 
-    <DatePicker
-        android:id="@+id/datePicker"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:calendarViewShown="false"
-        android:datePickerMode="spinner"
-        android:spinnersShown="true"
-        android:layout_marginTop="16dp"/>
-
-
-
 
 
     <Button
-        android:id="@+id/btn_add"
+        android:id="@+id/btn_date_published"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Add pet" />
+        android:text="Date Published" />
+
+    <TextView
+        android:id="@+id/tv_date"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Show Published Date Here"/>
+
+
+    <Button
+        android:id="@+id/btn_add_book"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:enabled="false"
+        android:text="Add Book" />
 
 </LinearLayout>

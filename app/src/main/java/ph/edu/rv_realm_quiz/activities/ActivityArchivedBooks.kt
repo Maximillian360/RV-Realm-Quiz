@@ -1,4 +1,6 @@
 package ph.edu.rv_realm_quiz.activities
 
-class ActivityArchivedBooks {
+import androidx.appcompat.app.AppCompatActivity
+
+class ActivityArchivedBooks: AppCompatActivity() {
 }

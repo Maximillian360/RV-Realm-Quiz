@@ -14,12 +14,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import ph.edu.rv_realm_quiz.adapters.BooksAdapter
 import ph.edu.rv_realm_quiz.databinding.ActivityBooksBinding
+import ph.edu.rv_realm_quiz.dialogs.AddBookDialog
 import ph.edu.rv_realm_quiz.models.Books
 import ph.edu.rv_realm_quiz.realm.BookRealm
 import ph.edu.rv_realm_quiz.realm.RealmDatabase
-import java.security.acl.Owner
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
-class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface {
+import java.util.Date
+import java.util.Locale
+
+class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface, AddBookDialog.RefreshDataInterface {
     private lateinit var binding: ActivityBooksBinding
     private lateinit var adapter: BooksAdapter
     private lateinit var booksList: ArrayList<Books>
@@ -52,16 +58,8 @@ class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface {
                     dialog.dismiss()
                 }
                 .show()
-            // Handle swipe for other owners
             getBooks()
 
-
-            // Handle swipe for Lotus owner
-//            if (ownerId == "Lotus") {
-//                // Notify adapter to refresh the view
-//                adapter.notifyItemChanged(position)
-//            } else {
-//            }
         }
     }
 
@@ -71,19 +69,34 @@ class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface {
         getBooks()
     }
 
+    override fun onResume() {
+        super.onResume()
+        //TODO: REALM DISCUSSION HERE
+        getBooks()
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityBooksBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val layoutManger = LinearLayoutManager(this)
+        binding.rvBooks.layoutManager = layoutManger
 
         booksList = arrayListOf()
-        adapter = BooksAdapter(booksList, this, this, supportFragmentManager )
+        adapter = BooksAdapter(booksList, this, this)
         binding.rvBooks.adapter = adapter
 
-        binding.fab.setOnClickListener{
+        itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
+        itemTouchHelper.attachToRecyclerView(binding.rvBooks)
 
+        getBooks()
+
+        binding.fab.setOnClickListener{
+            val addBookDialog = AddBookDialog()
+            addBookDialog.refreshDataCallback = this
+            addBookDialog.show(supportFragmentManager, "AddBookDialog")
         }
 
 //        getOwners()
@@ -91,46 +104,53 @@ class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface {
 //        itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
 //        itemTouchHelper.attachToRecyclerView(binding.rvBooks)
 
-//        val layoutManger = LinearLayoutManager(this)
-//        binding.rvBooks.layoutManager = layoutManger
+
 
     }
 
     private fun mapBooks(books: BookRealm): Books {
+        val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
         return Books(
             id = books.id.toHexString(),
-            bookName = books.bookName,
+            bookName = books.name,
             author = books.author,
-            dateBookAdded = books.dateBookAdded,
-            dateBookModified = books.dateBookModified,
-            dateBookPublished = books.dateBookPublished
+            dateBookAdded = Date(books.dateBookAdded),
+            dateBookModified = Date(books.dateBookModified),
+            dateBookPublished = Date(books.dateBookPublished)
 
         )
     }
 
+
+
+
+
     fun getBooks() {
         val coroutineContext = Job() + Dispatchers.IO
-        val scope = CoroutineScope(coroutineContext + CoroutineName("LoadAllOwners"))
+        val scope = CoroutineScope(coroutineContext + CoroutineName("LoadAllBooks"))
 
         scope.launch(Dispatchers.IO) {
-            //val books = database.getNonLotusOwner()
-            //val booksList = arrayListOf<Books>()
-//            booksList.addAll(
-//                books.map {
-//                    mapBooks(it)
-//                }
-//            )
+            val books = database.getAllBooks()
+            val booksList = arrayListOf<Books>()
+            booksList.addAll(
+                books.map {
+                    mapBooks(it)
+                }
+            )
             withContext(Dispatchers.Main) {
+                adapter.updateBookList(booksList)
+                adapter.notifyDataSetChanged()
+                binding.empty.text = if (booksList.isEmpty()) "No Books Yet..." else ""
             }
         }
     }
 
-    override fun archiveBooks(ownerId: String, position: Int) {
-        val coroutineContext = Job() + Dispatchers.IO
-        val scope = CoroutineScope(coroutineContext + CoroutineName("archiveBook"))
-        scope.launch(Dispatchers.IO) {
-
-        }
-    }
+//    override fun archiveBooks(ownerId: String, position: Int) {
+//        val coroutineContext = Job() + Dispatchers.IO
+//        val scope = CoroutineScope(coroutineContext + CoroutineName("archiveBook"))
+//        scope.launch(Dispatchers.IO) {
+//
+//        }
+//    }
 
 }

@@ -15,12 +15,12 @@
         <activity
             android:name=".activities.ActivityBooks"
             android:exported="false" />
-<!--        <activity-->
-<!--            android:name=".activities.ActivityFavBooks"-->
-<!--            android:exported="false" />-->
-<!--        <activity-->
-<!--            android:name=".activities.ActivityArchivedBooks"-->
-<!--            android:exported="false" />-->
+        <activity
+            android:name=".activities.ActivityFavBooks"
+            android:exported="false" />
+        <activity
+            android:name=".activities.ActivityArchivedBooks"
+            android:exported="false" />
         <activity
             android:name=".activities.MainActivity"
             android:exported="true">
