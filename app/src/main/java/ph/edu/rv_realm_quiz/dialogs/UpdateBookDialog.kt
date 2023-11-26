@@ -71,6 +71,9 @@ class UpdateBookDialog : DialogFragment() {
         super.onViewCreated(view, savedInstanceState)
 
         with(binding) {
+            btnDatePublished.setOnClickListener {
+                showDatePicker()
+            }
             edtBookName.setText(book.bookName)
             edtAuthor.setText(book.author)
             numPages.setText(book.pages.toString())
@@ -104,13 +107,14 @@ class UpdateBookDialog : DialogFragment() {
                 val bookAuthor = edtAuthor.text.toString()
                 val bookPages = numPages.text.toString().toInt()
                 val bookProgress = seekBarProgress.progress
+                val bookPublished = date!!.time
                 val currentDate = Calendar.getInstance().time.time
 
                 if(bookId != null){
                     val coroutineContext = Job() + Dispatchers.IO
                     val scope = CoroutineScope(coroutineContext + CoroutineName("addBookToRealm"))
                     scope.launch(Dispatchers.IO) {
-                        database.updateBook(bookId, bookName, bookAuthor, bookPages, bookProgress, currentDate)
+                        database.updateBook(bookId, bookName, bookAuthor, bookPages, bookProgress, bookPublished, currentDate)
                         withContext(Dispatchers.Main) {
                             Toast.makeText(activity, "Book has been updated!", Toast.LENGTH_LONG).show()
                             refreshDataCallback.refreshData()
@@ -125,5 +129,32 @@ class UpdateBookDialog : DialogFragment() {
                 // ... rest of your logic
             }
         }
+    }
+    private fun showDatePicker() {
+        val c = Calendar.getInstance()
+        val year = c.get(Calendar.YEAR)
+        val month = c.get(Calendar.MONTH)
+        val day = c.get(Calendar.DAY_OF_MONTH)
+        //val datePickerCallback = datePickerCallback
+        val datePickerDialog = DatePickerDialog(
+            requireContext(),
+            { _, selectedYear, selectedMonth, selectedDay ->
+                // Handle the selected date
+                val selectedCalendar = Calendar.getInstance().apply {
+                    set(selectedYear, selectedMonth, selectedDay)
+                }
+                val selectedDate = selectedCalendar.time
+                date = selectedDate
+
+                // Notify the callback with the selected date
+                //datePickerCallback?.onDateSelected(selectedDate)
+                binding.btnUpdateBook.isEnabled = true
+            },
+            year,
+            month,
+            day
+        )
+
+        datePickerDialog.show()
     }
 }

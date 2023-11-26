@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
     <LinearLayout
@@ -9,17 +10,33 @@
         android:padding="10dp">
 
         <TextView
-            android:id="@+id/empty"
+            android:id="@+id/textView"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="10dp"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:text="ARCHIVED BOOKS"
             android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/empty"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="10dp"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
             android:textStyle="bold" />
 
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rv_archived_books"
             android:layout_width="match_parent"
-            android:layout_height="595dp"
+            android:layout_height="564dp"
             android:padding="10dp" />
 
         <LinearLayout
@@ -33,20 +50,22 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="10dp"
-                android:layout_marginEnd="10dp"
+                android:layout_marginEnd="5dp"
                 android:layout_weight="1"
                 android:enabled="false"
-                android:text="Restore All" />
+                android:text="Restore All"
+                app:icon="@drawable/baseline_restore_24" />
 
             <Button
                 android:id="@+id/btn_delete_all"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="10dp"
+                android:layout_marginStart="5dp"
                 android:layout_marginRight="10dp"
                 android:layout_weight="1"
                 android:enabled="false"
-                android:text="Delete All" />
+                android:text="Delete All"
+                app:icon="@drawable/baseline_delete_forever_24" />
         </LinearLayout>
 
     </LinearLayout>

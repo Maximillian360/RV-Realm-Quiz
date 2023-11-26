@@ -11,6 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import ph.edu.rv_realm_quiz.R
 import ph.edu.rv_realm_quiz.databinding.ContentArchivedBooksRvBinding
 import ph.edu.rv_realm_quiz.models.Books
 import ph.edu.rv_realm_quiz.realm.RealmDatabase
@@ -41,6 +42,7 @@ class ArchivedBooksAdapter(
         RecyclerView.ViewHolder(binding.root) {
         fun bind(book: Books) {
             with(binding) {
+
                 txtBookName.text = String.format("Book: %s", book.bookName)
                 txtAuthor.text = String.format("Author: %s", book.author)
                 txtPages.text = String.format("Pages: %s", book.pages)

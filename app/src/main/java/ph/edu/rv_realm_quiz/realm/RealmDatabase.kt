@@ -9,8 +9,6 @@ import org.mongodb.kbson.ObjectId
 import ph.edu.rv_realm_quiz.adapters.BooksAdapter
 import ph.edu.rv_realm_quiz.models.Books
 import java.lang.IllegalStateException
-import java.nio.file.Files.delete
-import java.nio.file.Files.find
 
 class RealmDatabase {
     private val realm: Realm by lazy {
@@ -74,6 +72,7 @@ class RealmDatabase {
         bookAuthor: String,
         bookPages: Int,
         bookProgress: Int,
+        bookPublished: Long,
         dateModified: Long
     ) {
         val dupeBookChecker = realm.query<BookRealm>(
@@ -87,6 +86,7 @@ class RealmDatabase {
                     author = bookAuthor
                     pages = bookPages
                     progress = bookProgress
+                    dateBookPublished = bookPublished
                     dateBookModified = dateModified
                 }
 
