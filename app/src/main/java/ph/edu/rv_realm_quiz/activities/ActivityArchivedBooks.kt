@@ -1,6 +1,8 @@
 package ph.edu.rv_realm_quiz.activities
 
 import android.os.Bundle
+import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -78,25 +80,72 @@ class ActivityArchivedBooks: AppCompatActivity(), ArchivedBooksAdapter.ArchivedB
         itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
         itemTouchHelper.attachToRecyclerView(binding.rvArchivedBooks)
 
-        binding
-
         getBooks()
+
+        if(booksList.isNotEmpty()){
+            binding.btnRestoreAll.isEnabled = true
+            binding.btnDeleteAll.isEnabled = true
+        }
+        else{
+            binding.btnRestoreAll.isEnabled = false
+            binding.btnDeleteAll.isEnabled = false
+        }
+
+        binding.btnRestoreAll.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Restore All")
+                .setMessage("Are you sure you want to restore all archived books?")
+                .setPositiveButton("Restore All") { _, _ ->
+                    val coroutineContext = Job() + Dispatchers.IO
+                    val scope = CoroutineScope(coroutineContext + CoroutineName("RestoreAllBook"))
+                    scope.launch(Dispatchers.IO) {
+                        database.unarchiveAllBook()
+                        withContext(Dispatchers.Main) {
+                            // You can update the UI or show a message if needed
+                            Toast.makeText(this@ActivityArchivedBooks, "All Books Unarchived!", Toast.LENGTH_LONG).show()
+                            refreshData()
+                        }
+
+                    }
+                }
+                .setNegativeButton("Cancel") { dialog, _ ->
+                    // User clicked Cancel, dismiss the dialog
+                    dialog.dismiss()
+                }
+                .show()
+        }
+
+        binding.btnDeleteAll.setOnClickListener {
+            AlertDialog.Builder(this)
+                .setTitle("Delete All")
+                .setMessage("Are you sure you want to delete all archived books?")
+                .setPositiveButton("Delete All") { _, _ ->
+                    val coroutineContext = Job() + Dispatchers.IO
+                    val scope = CoroutineScope(coroutineContext + CoroutineName("DeleteAllBook"))
+                    scope.launch(Dispatchers.IO) {
+                        database.deleteAllBook()
+                        withContext(Dispatchers.Main) {
+                            // You can update the UI or show a message if needed
+                            Toast.makeText(this@ActivityArchivedBooks, "All Archived Books Deleted!", Toast.LENGTH_LONG).show()
+                            refreshData()
+                        }
+
+                    }
+                }
+                .setNegativeButton("Cancel") { dialog, _ ->
+                    // User clicked Cancel, dismiss the dialog
+                    dialog.dismiss()
+                }
+                .show()
+
+        }
+
+
 
     }
 
     override fun unArchiveBook(bookId: String, position: Int) {
-//        val coroutineContext = Job() + Dispatchers.IO
-//        val scope = CoroutineScope(coroutineContext + CoroutineName("unarchiveBook"))
-//        scope.launch(Dispatchers.IO) {
-//            val book = booksList[position]
-//            database.unArchiveBook(book)
-//            withContext(Dispatchers.Main){
-//                booksList.removeAt(position)
-//                adapter.notifyItemRemoved(position)
-//                adapter.updateBookList(database.getFavoriteBooks().map {mapBooks(it)} as ArrayList<Books>)
-//                Snackbar.make(binding.root, "Book Unarchived Successfully", Snackbar.LENGTH_LONG).show()
-//            }
-//        }
+
     }
 
     override fun deleteBook(bookId: String, position: Int) {
@@ -111,6 +160,7 @@ class ActivityArchivedBooks: AppCompatActivity(), ArchivedBooksAdapter.ArchivedB
                 adapter.notifyItemRemoved(position)
                 adapter.updateBookList(database.getArchivedBooks().map {mapBooks(it)} as ArrayList<Books>)
                 Snackbar.make(binding.root, "Book Deleted Successfully", Snackbar.LENGTH_LONG).show()
+                getBooks()
             }
         }
     }
@@ -149,6 +199,8 @@ class ActivityArchivedBooks: AppCompatActivity(), ArchivedBooksAdapter.ArchivedB
                 adapter.updateBookList(booksList)
                 adapter.notifyDataSetChanged()
                 binding.empty.text = if (booksList.isEmpty()) "No Archived Books Yet..." else ""
+                binding.btnRestoreAll.isEnabled = booksList.isNotEmpty()
+                binding.btnDeleteAll.isEnabled = booksList.isNotEmpty()
             }
         }
     }

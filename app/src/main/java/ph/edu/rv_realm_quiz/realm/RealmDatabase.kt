@@ -3,12 +3,14 @@ package ph.edu.rv_realm_quiz.realm
 import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
+import io.realm.kotlin.query.find
 import org.mongodb.kbson.BsonObjectId
 import org.mongodb.kbson.ObjectId
 import ph.edu.rv_realm_quiz.adapters.BooksAdapter
 import ph.edu.rv_realm_quiz.models.Books
 import java.lang.IllegalStateException
 import java.nio.file.Files.delete
+import java.nio.file.Files.find
 
 class RealmDatabase {
     private val realm: Realm by lazy {
@@ -111,7 +113,6 @@ class RealmDatabase {
                 throw IllegalStateException("Book with ID $archiveBookID not found. Cannot update.")
             }
         }
-
     }
 
     suspend fun deleteBook(bookId: ObjectId){
@@ -120,4 +121,21 @@ class RealmDatabase {
             query<BookRealm>("id == $0", bookId).first().find()?.let { delete(it) } ?: throw IllegalStateException("Book not found")
         }
     }
+
+    suspend fun unarchiveAllBook(){
+        val bookRealm = realm.query<BookRealm>("isArchived == true").find()
+        realm.write {
+            for(book in bookRealm){
+                findLatest(book)?.apply {
+                    isArchived = false
+                }
+            }
+        }
+    }
+
+    suspend fun deleteAllBook(){
+        realm.write {
+            delete(query<BookRealm>("isArchived == true").find())
+        }
+        }
 }
