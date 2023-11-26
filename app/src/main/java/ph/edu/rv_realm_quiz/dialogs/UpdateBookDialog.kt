@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.widget.SeekBar
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.FragmentManager
@@ -73,7 +74,17 @@ class UpdateBookDialog : DialogFragment() {
             edtBookName.setText(book.bookName)
             edtAuthor.setText(book.author)
             numPages.setText(book.pages.toString())
-            numProgress.setText(book.progress.toString())
+            seekBarProgress.progress = book.progress
+            tvProgress.text = "${seekBarProgress.progress}"
+            seekBarProgress.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+                override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                    // Update the text of tvProgress when the SeekBar progress changes
+                    tvProgress.text = "$progress"
+                }
+                override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+                override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+            })
+
             btnUpdateBook.setOnClickListener {
                 if (edtBookName.text.isNullOrEmpty()) {
                     edtBookName.error = "Required"
@@ -87,16 +98,12 @@ class UpdateBookDialog : DialogFragment() {
                     numPages.error = "Required"
                     return@setOnClickListener
                 }
-                if (numProgress.text.isNullOrEmpty()) {
-                    numProgress.error = "Required"
-                    return@setOnClickListener
-                }
 
                 val bookId = BsonObjectId(book.id)
                 val bookName = edtBookName.text.toString()
                 val bookAuthor = edtAuthor.text.toString()
                 val bookPages = numPages.text.toString().toInt()
-                val bookProgress = numProgress.text.toString().toInt()
+                val bookProgress = seekBarProgress.progress
                 val currentDate = Calendar.getInstance().time.time
 
                 if(bookId != null){
