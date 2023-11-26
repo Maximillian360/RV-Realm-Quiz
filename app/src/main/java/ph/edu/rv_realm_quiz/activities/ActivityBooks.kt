@@ -6,12 +6,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.mongodb.kbson.ObjectId
 import ph.edu.rv_realm_quiz.adapters.BooksAdapter
 import ph.edu.rv_realm_quiz.databinding.ActivityBooksBinding
 import ph.edu.rv_realm_quiz.dialogs.AddBookDialog
@@ -64,7 +66,6 @@ class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface, A
     }
 
 
-
     override fun refreshData(){
         getBooks()
     }
@@ -101,8 +102,6 @@ class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface, A
 
 //        getOwners()
 
-//        itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
-//        itemTouchHelper.attachToRecyclerView(binding.rvBooks)
 
 
 
@@ -145,12 +144,20 @@ class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface, A
         }
     }
 
-//    override fun archiveBooks(ownerId: String, position: Int) {
-//        val coroutineContext = Job() + Dispatchers.IO
-//        val scope = CoroutineScope(coroutineContext + CoroutineName("archiveBook"))
-//        scope.launch(Dispatchers.IO) {
-//
-//        }
-//    }
+    override fun archiveBook(bookId: ObjectId, position: Int) {
+        val coroutineContext = Job() + Dispatchers.IO
+        val scope = CoroutineScope(coroutineContext + CoroutineName("archiveBook"))
+        scope.launch(Dispatchers.IO) {
+            val book = booksList[position]
+            database.archiveBook(book)
+            withContext(Dispatchers.Main){
+                booksList.removeAt(position)
+                adapter.notifyItemRemoved(position)
+                adapter.updateBookList(database.getAllBooks().map {mapBooks(it)} as ArrayList<Books>)
+                Snackbar.make(binding.root, "Book Archived Successfully", Snackbar.LENGTH_LONG).show()
+            }
+
+        }
+    }
 
 }

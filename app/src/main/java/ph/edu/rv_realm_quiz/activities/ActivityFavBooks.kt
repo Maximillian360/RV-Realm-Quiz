@@ -98,7 +98,6 @@ class ActivityFavBooks : AppCompatActivity(), FavBooksAdapter.FavBooksAdapterInt
     }
 
     private fun mapBooks(books: BookRealm): Books {
-        val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
         return Books(
             id = books.id.toHexString(),
             bookName = books.name,

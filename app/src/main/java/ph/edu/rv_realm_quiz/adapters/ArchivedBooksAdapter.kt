@@ -1,11 +1,9 @@
 package ph.edu.rv_realm_quiz.adapters
 
 import android.content.Context
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.FragmentManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
@@ -13,44 +11,34 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.mongodb.kbson.BsonObjectId
-import org.mongodb.kbson.ObjectId
-import ph.edu.rv_realm_quiz.databinding.ContentBooksRvBinding
-import ph.edu.rv_realm_quiz.dialogs.AddBookDialog
+import ph.edu.rv_realm_quiz.databinding.ContentArchivedBooksRvBinding
 import ph.edu.rv_realm_quiz.models.Books
 import ph.edu.rv_realm_quiz.realm.RealmDatabase
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
 
-
-class BooksAdapter(
+class ArchivedBooksAdapter(
     private var booksList: ArrayList<Books>,
     private val context: Context,
-    private val bookAdapterCallback: BooksAdapterInterface,
-) : RecyclerView.Adapter<BooksAdapter.BookViewHolder>(), ItemTouchHelperAdapter {
+    private val bookAdapterCallback: ArchivedBooksAdapterInterface,
+) : RecyclerView.Adapter<ArchivedBooksAdapter.BookViewHolder>(), ItemTouchHelperAdapter{
 
     private lateinit var book: Books
     private var database = RealmDatabase()
-    //lateinit var refreshDataCallback: AddBookDialog.RefreshDataInterface
 
-    interface BooksAdapterInterface {
-        fun archiveBook(bookId: ObjectId, position: Int)
+    interface ArchivedBooksAdapterInterface {
+        fun unArchiveBook(bookId: String, position: Int)
+
+        fun deleteBook(bookId: String, position: Int)
 
         //        fun archiveOwner(ownerId: String, position: Int)
 //        fun deleteOwnerAndTransferPets(ownerId: String, position: Int)
         fun refreshData()
     }
 
-    fun setBook(book: Books) {
-        this.book = book
-    }
-
-    inner class BookViewHolder(private val binding: ContentBooksRvBinding) :
+    inner class BookViewHolder(private val binding: ContentArchivedBooksRvBinding) :
         RecyclerView.ViewHolder(binding.root) {
-
         fun bind(book: Books) {
             with(binding) {
                 txtBookName.text = String.format("Book: %s", book.bookName)
@@ -62,55 +50,34 @@ class BooksAdapter(
                     String.format("Date Modified: %s", formatDate(book.dateBookModified))
 
 
-                btnToFav.setOnClickListener {
+                btnUnarchive.setOnClickListener {
                     val coroutineContext = Job() + Dispatchers.IO
-                    val scope = CoroutineScope(coroutineContext + CoroutineName("favBook"))
+                    val scope = CoroutineScope(coroutineContext + CoroutineName("unarchiveBook"))
                     scope.launch(Dispatchers.IO) {
-                        database.favBook(book)
+                        database.unArchiveBook(book)
                         withContext(Dispatchers.Main) {
                             // You can update the UI or show a message if needed
-                            Toast.makeText(context, "Book Moved to Favorites!", Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Book Unarchived!", Toast.LENGTH_LONG).show()
                             // Refresh data if necessary
                             bookAdapterCallback.refreshData()
                         }
                     }
-
-
-//                btnEditOwner.isEnabled = itemData.name != "Lotus"
-//
-//                btnEditOwner.setOnClickListener {
-//                    val editOwnerDialog = EditOwner()
-//                    editOwnerDialog.refreshDataCallback = object : EditPet.RefreshDataInterface{
-//                        override fun refreshData() {
-//                            ownerAdapterCallback.refreshData()
-//                        }
-//                    }
-//                    editOwnerDialog.bindOwnerData(itemData)
-//                    editOwnerDialog.show(fragmentManager, null)
-//                }
                 }
             }
         }
     }
-
     private fun formatDate(date: Date): String {
         val formatter = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
         return formatter.format(date)
     }
 
-    fun LocalDate.formatted(): String {
-        val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy")
-        return format(formatter)
-    }
-
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): BookViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ArchivedBooksAdapter.BookViewHolder {
         val binding =
-            ContentBooksRvBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ContentArchivedBooksRvBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return BookViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: BookViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: ArchivedBooksAdapter.BookViewHolder, position: Int) {
         val bookData = booksList[position]
         holder.bind(bookData)
         holder.itemView.tag = position
@@ -135,13 +102,10 @@ class BooksAdapter(
 
     override fun onItemDismiss(position: Int) {
         if (position in 0 until booksList.size) {
-            val bookId = BsonObjectId(booksList[position].id)
-            bookAdapterCallback.archiveBook(bookId, position)
+            val bookId = booksList[position].id
+            bookAdapterCallback.deleteBook(bookId, position)
             //ownerAdapterCallback.archiveOwner(ownerId, position)
-        } else {
-            //Log.d("OwnerAdapter", "Error: Position out of bounds")
         }
     }
-
 
 }

@@ -4,8 +4,11 @@ import io.realm.kotlin.Realm
 import io.realm.kotlin.RealmConfiguration
 import io.realm.kotlin.ext.query
 import org.mongodb.kbson.BsonObjectId
+import org.mongodb.kbson.ObjectId
+import ph.edu.rv_realm_quiz.adapters.BooksAdapter
 import ph.edu.rv_realm_quiz.models.Books
 import java.lang.IllegalStateException
+import java.nio.file.Files.delete
 
 class RealmDatabase {
     private val realm: Realm by lazy {
@@ -76,6 +79,45 @@ class RealmDatabase {
             else{
                 throw IllegalStateException("Book with ID $bookID not found. Cannot update.")
             }
+        }
+    }
+
+    suspend fun archiveBook(book: Books){
+        val archiveBookID = BsonObjectId(book.id)
+        val bookRealm = realm.query<BookRealm>("id == $0", archiveBookID).first().find()
+        realm.write {
+            if(bookRealm != null){
+                findLatest(bookRealm).apply {
+                    this!!.isArchived = true
+                }
+            }
+            else{
+                throw IllegalStateException("Book with ID $archiveBookID not found. Cannot update.")
+            }
+        }
+
+    }
+
+    suspend fun unArchiveBook(book: Books){
+        val archiveBookID = BsonObjectId(book.id)
+        val bookRealm = realm.query<BookRealm>("id == $0", archiveBookID).first().find()
+        realm.write {
+            if(bookRealm != null){
+                findLatest(bookRealm).apply {
+                    this!!.isArchived = false
+                }
+            }
+            else{
+                throw IllegalStateException("Book with ID $archiveBookID not found. Cannot update.")
+            }
+        }
+
+    }
+
+    suspend fun deleteBook(bookId: ObjectId){
+        //val deleteID = BsonObjectId(book.id)
+        realm.write {
+            query<BookRealm>("id == $0", bookId).first().find()?.let { delete(it) } ?: throw IllegalStateException("Book not found")
         }
     }
 }
