@@ -36,6 +36,8 @@ class FavBooksAdapter(
             with(binding) {
                 txtBookName.text = String.format("Book: %s", book.bookName)
                 txtAuthor.text = String.format("Author: %s", book.author)
+                txtPages.text = String.format("Pages: %s", book.pages)
+                txtProgress.text = String.format("Progress: %s", book.progress)
                 txtPublished.text =
                     String.format("Date Published: %s", formatDate(book.dateBookPublished))
                 txtAdded.text = String.format("Date Added: %s", formatDate(book.dateBookAdded))

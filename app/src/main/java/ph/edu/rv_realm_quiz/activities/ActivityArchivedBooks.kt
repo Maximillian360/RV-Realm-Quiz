@@ -176,6 +176,8 @@ class ActivityArchivedBooks: AppCompatActivity(), ArchivedBooksAdapter.ArchivedB
             id = books.id.toHexString(),
             bookName = books.name,
             author = books.author,
+            pages = books.pages,
+            progress = books.progress,
             dateBookAdded = Date(books.dateBookAdded),
             dateBookModified = Date(books.dateBookModified),
             dateBookPublished = Date(books.dateBookPublished)

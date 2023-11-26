@@ -12,6 +12,8 @@ class BookRealm : RealmObject{
     var dateBookPublished: Long = 0
     var dateBookAdded: Long = 0
     var dateBookModified: Long = 0
+    var pages: Int = 0
+    var progress: Int = 0
     var isFav: Boolean = false
     var isArchived: Boolean = false
 }

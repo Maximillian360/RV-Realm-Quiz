@@ -86,7 +86,7 @@ class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface, A
         binding.rvBooks.layoutManager = layoutManger
 
         booksList = arrayListOf()
-        adapter = BooksAdapter(booksList, this, this)
+        adapter = BooksAdapter(booksList, this, this, supportFragmentManager)
         binding.rvBooks.adapter = adapter
 
         itemTouchHelper = ItemTouchHelper(swipeToDeleteCallback)
@@ -99,29 +99,23 @@ class ActivityBooks : AppCompatActivity(), BooksAdapter.BooksAdapterInterface, A
             addBookDialog.refreshDataCallback = this
             addBookDialog.show(supportFragmentManager, "AddBookDialog")
         }
-
 //        getOwners()
-
-
-
 
     }
 
     private fun mapBooks(books: BookRealm): Books {
-        val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.getDefault())
         return Books(
             id = books.id.toHexString(),
             bookName = books.name,
             author = books.author,
+            pages = books.pages,
+            progress = books.progress,
             dateBookAdded = Date(books.dateBookAdded),
             dateBookModified = Date(books.dateBookModified),
             dateBookPublished = Date(books.dateBookPublished)
 
         )
     }
-
-
-
 
 
     fun getBooks() {

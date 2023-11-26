@@ -10,6 +10,8 @@ data class Books (
     val dateBookPublished: Date,
     val dateBookAdded: Date,
     val dateBookModified: Date,
+    val pages: Int,
+    val progress: Int
 //    val isFav: Boolean,
 //    val isArchived: Boolean
 )

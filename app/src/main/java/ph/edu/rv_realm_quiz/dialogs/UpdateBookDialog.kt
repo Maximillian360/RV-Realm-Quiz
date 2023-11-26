@@ -16,21 +16,25 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.mongodb.kbson.BsonObjectId
 import ph.edu.rv_realm_quiz.databinding.DialogAddBookBinding
+import ph.edu.rv_realm_quiz.databinding.DialogUpdateBookBinding
+import ph.edu.rv_realm_quiz.models.Books
 import ph.edu.rv_realm_quiz.realm.RealmDatabase
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
-class AddBookDialog : DialogFragment() {
+class UpdateBookDialog : DialogFragment() {
 
-    private lateinit var binding: DialogAddBookBinding
+    private lateinit var binding: DialogUpdateBookBinding
     private var database = RealmDatabase()
     private var isDateSelected = false
     //private var datePickerCallback: DatePickerCallback? = null
     lateinit var refreshDataCallback: RefreshDataInterface
     private var date: Date? = Calendar.getInstance().time
+    private lateinit var book: Books
     interface DatePickerCallback {
         fun onDateSelected(selectedDate: Date)
     }
@@ -54,18 +58,23 @@ class AddBookDialog : DialogFragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = DialogAddBookBinding.inflate(layoutInflater, container, false)
+        binding = DialogUpdateBookBinding.inflate(layoutInflater, container, false)
         return binding.root
+    }
+
+    fun bindBook(book: Books){
+        this.book = book
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         with(binding) {
-            btnDatePublished.setOnClickListener {
-                showDatePicker()
-            }
-            btnAddBook.setOnClickListener {
+            edtBookName.setText(book.bookName)
+            edtAuthor.setText(book.author)
+            numPages.setText(book.pages.toString())
+            numProgress.setText(book.progress.toString())
+            btnUpdateBook.setOnClickListener {
                 if (edtBookName.text.isNullOrEmpty()) {
                     edtBookName.error = "Required"
                     return@setOnClickListener
@@ -78,20 +87,25 @@ class AddBookDialog : DialogFragment() {
                     numPages.error = "Required"
                     return@setOnClickListener
                 }
+                if (numProgress.text.isNullOrEmpty()) {
+                    numProgress.error = "Required"
+                    return@setOnClickListener
+                }
+
+                val bookId = BsonObjectId(book.id)
                 val bookName = edtBookName.text.toString()
                 val bookAuthor = edtAuthor.text.toString()
                 val bookPages = numPages.text.toString().toInt()
-                val bookProgress = 0
-                val bookPublished = date!!.time
+                val bookProgress = numProgress.text.toString().toInt()
                 val currentDate = Calendar.getInstance().time.time
 
-                if(bookPublished != null){
+                if(bookId != null){
                     val coroutineContext = Job() + Dispatchers.IO
                     val scope = CoroutineScope(coroutineContext + CoroutineName("addBookToRealm"))
                     scope.launch(Dispatchers.IO) {
-                        database.addBook(bookName, bookAuthor, bookPages,bookProgress, bookPublished, currentDate, currentDate)
+                        database.updateBook(bookId, bookName, bookAuthor, bookPages, bookProgress, currentDate)
                         withContext(Dispatchers.Main) {
-                            Toast.makeText(activity, "Book has been added!", Toast.LENGTH_LONG).show()
+                            Toast.makeText(activity, "Book has been updated!", Toast.LENGTH_LONG).show()
                             refreshDataCallback.refreshData()
                             dialog?.dismiss()
                         }
@@ -99,39 +113,10 @@ class AddBookDialog : DialogFragment() {
                 }
 
                 else{
-                    Toast.makeText(activity, "Error! $bookPublished is null!", Toast.LENGTH_LONG).show()
+                    Toast.makeText(activity, "Error! book does not exist!", Toast.LENGTH_LONG).show()
                 }
                 // ... rest of your logic
             }
         }
     }
-
-    private fun showDatePicker() {
-        val c = Calendar.getInstance()
-        val year = c.get(Calendar.YEAR)
-        val month = c.get(Calendar.MONTH)
-        val day = c.get(Calendar.DAY_OF_MONTH)
-        //val datePickerCallback = datePickerCallback
-        val datePickerDialog = DatePickerDialog(
-            requireContext(),
-            { _, selectedYear, selectedMonth, selectedDay ->
-                // Handle the selected date
-                val selectedCalendar = Calendar.getInstance().apply {
-                    set(selectedYear, selectedMonth, selectedDay)
-                }
-                val selectedDate = selectedCalendar.time
-                date = selectedDate
-
-                // Notify the callback with the selected date
-                //datePickerCallback?.onDateSelected(selectedDate)
-                binding.btnAddBook.isEnabled = true
-            },
-            year,
-            month,
-            day
-        )
-
-        datePickerDialog.show()
-    }
-
 }

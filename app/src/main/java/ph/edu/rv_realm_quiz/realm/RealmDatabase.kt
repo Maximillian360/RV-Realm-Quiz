@@ -15,117 +15,156 @@ import java.nio.file.Files.find
 class RealmDatabase {
     private val realm: Realm by lazy {
         val config =
-            RealmConfiguration.Builder(setOf(BookRealm::class)).schemaVersion(1).initialData {
-
+            RealmConfiguration.Builder(setOf(BookRealm::class)).schemaVersion(2).initialData {
             }
                 .build()
         Realm.open(config)
     }
 
-    fun getAllBooks(): List<BookRealm>{
+    fun getAllBooks(): List<BookRealm> {
         return realm.query<BookRealm>("isArchived == false && isFav == false").find()
     }
 
-    fun getArchivedBooks(): List<BookRealm>{
+    fun getArchivedBooks(): List<BookRealm> {
         return realm.query<BookRealm>("isArchived == true").find()
     }
 
-    fun getFavoriteBooks(): List<BookRealm>{
+    fun getFavoriteBooks(): List<BookRealm> {
         return realm.query<BookRealm>("isFav == true").find()
     }
 
-    suspend fun addBook(bookName: String, bookAuthor: String, datePublished: Long, dateAdded: Long, dateModified: Long) {
-        val dupeBookChecker: BookRealm? = realm.query<BookRealm>("author == $0 && name == $1 && dateBookPublished == $2", bookAuthor, bookName, datePublished).first().find()
+    suspend fun addBook(
+        bookName: String,
+        bookAuthor: String,
+        bookPages: Int,
+        bookProgress: Int,
+        datePublished: Long,
+        dateAdded: Long,
+        dateModified: Long
+    ) {
+        val dupeBookChecker: BookRealm? = realm.query<BookRealm>(
+            "author == $0 && name == $1 && pages == $2 && dateBookPublished == $3",
+            bookAuthor,
+            bookName,
+            bookPages,
+            datePublished
+        ).first().find()
         realm.write {
-            if(dupeBookChecker == null){
-                val newBook = BookRealm().apply{
+            if (dupeBookChecker == null) {
+                val newBook = BookRealm().apply {
                     name = bookName
                     author = bookAuthor
+                    pages = bookPages
+                    progress = bookProgress
                     dateBookPublished = datePublished
                     dateBookAdded = dateAdded
                     dateBookModified = dateModified
                 }
 
                 val manageBook = copyToRealm(newBook)
-            }
-            else{
-                throw IllegalStateException("Book duplicate!.")
+            } else {
+                throw IllegalStateException("Book duplicate!")
             }
         }
     }
 
-    suspend fun favBook(book: Books){
+    suspend fun updateBook(
+        bookId: ObjectId,
+        bookName: String,
+        bookAuthor: String,
+        bookPages: Int,
+        bookProgress: Int,
+        dateModified: Long
+    ) {
+        val dupeBookChecker = realm.query<BookRealm>(
+            "id == $0",
+            bookId,
+        ).first().find()
+        realm.write {
+            if (dupeBookChecker != null) {
+                findLatest(dupeBookChecker)?.apply {
+                    name = bookName
+                    author = bookAuthor
+                    pages = bookPages
+                    progress = bookProgress
+                    dateBookModified = dateModified
+                }
+
+            } else {
+                throw IllegalStateException("Book does not exist!.")
+            }
+        }
+    }
+
+    suspend fun favBook(book: Books) {
         realm.write {
             val bookID = BsonObjectId(book.id)
             val bookRealm = query<BookRealm>("id == $0", bookID).first().find()
-            if(bookRealm != null){
+            if (bookRealm != null) {
                 findLatest(bookRealm).apply {
                     this!!.isFav = true
                 }
-            }
-            else{
+            } else {
                 throw IllegalStateException("Book with ID $bookID not found. Cannot update.")
             }
         }
     }
 
-    suspend fun unFavBook(book: Books){
+    suspend fun unFavBook(book: Books) {
         realm.write {
             val bookID = BsonObjectId(book.id)
             val bookRealm = query<BookRealm>("id == $0", bookID).first().find()
-            if(bookRealm != null){
+            if (bookRealm != null) {
                 findLatest(bookRealm).apply {
                     this!!.isFav = false
                 }
-            }
-            else{
+            } else {
                 throw IllegalStateException("Book with ID $bookID not found. Cannot update.")
             }
         }
     }
 
-    suspend fun archiveBook(book: Books){
+    suspend fun archiveBook(book: Books) {
         val archiveBookID = BsonObjectId(book.id)
         val bookRealm = realm.query<BookRealm>("id == $0", archiveBookID).first().find()
         realm.write {
-            if(bookRealm != null){
+            if (bookRealm != null) {
                 findLatest(bookRealm).apply {
                     this!!.isArchived = true
                 }
-            }
-            else{
+            } else {
                 throw IllegalStateException("Book with ID $archiveBookID not found. Cannot update.")
             }
         }
 
     }
 
-    suspend fun unArchiveBook(book: Books){
+    suspend fun unArchiveBook(book: Books) {
         val archiveBookID = BsonObjectId(book.id)
         val bookRealm = realm.query<BookRealm>("id == $0", archiveBookID).first().find()
         realm.write {
-            if(bookRealm != null){
+            if (bookRealm != null) {
                 findLatest(bookRealm).apply {
                     this!!.isArchived = false
                 }
-            }
-            else{
+            } else {
                 throw IllegalStateException("Book with ID $archiveBookID not found. Cannot update.")
             }
         }
     }
 
-    suspend fun deleteBook(bookId: ObjectId){
+    suspend fun deleteBook(bookId: ObjectId) {
         //val deleteID = BsonObjectId(book.id)
         realm.write {
-            query<BookRealm>("id == $0", bookId).first().find()?.let { delete(it) } ?: throw IllegalStateException("Book not found")
+            query<BookRealm>("id == $0", bookId).first().find()?.let { delete(it) }
+                ?: throw IllegalStateException("Book not found")
         }
     }
 
-    suspend fun unarchiveAllBook(){
+    suspend fun unarchiveAllBook() {
         val bookRealm = realm.query<BookRealm>("isArchived == true").find()
         realm.write {
-            for(book in bookRealm){
+            for (book in bookRealm) {
                 findLatest(book)?.apply {
                     isArchived = false
                 }
@@ -133,9 +172,9 @@ class RealmDatabase {
         }
     }
 
-    suspend fun deleteAllBook(){
+    suspend fun deleteAllBook() {
         realm.write {
             delete(query<BookRealm>("isArchived == true").find())
         }
-        }
+    }
 }

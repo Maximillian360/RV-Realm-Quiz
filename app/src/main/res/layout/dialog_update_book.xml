@@ -28,18 +28,20 @@
         android:importantForAutofill="no"
         android:inputType="number" />
 
-    <Button
-        android:id="@+id/btn_date_published"
+    <EditText
+        android:id="@+id/num_progress"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Date Published" />
-
+        android:ems="10"
+        android:hint="Book Progress"
+        android:importantForAutofill="no"
+        android:inputType="number" />
 
     <Button
-        android:id="@+id/btn_add_book"
+        android:id="@+id/btn_update_book"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:enabled="false"
-        android:text="Add Book" />
+        android:enabled="true"
+        android:text="Update Book" />
 
 </LinearLayout>

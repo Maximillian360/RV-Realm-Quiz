@@ -17,6 +17,7 @@ import org.mongodb.kbson.BsonObjectId
 import org.mongodb.kbson.ObjectId
 import ph.edu.rv_realm_quiz.databinding.ContentBooksRvBinding
 import ph.edu.rv_realm_quiz.dialogs.AddBookDialog
+import ph.edu.rv_realm_quiz.dialogs.UpdateBookDialog
 import ph.edu.rv_realm_quiz.models.Books
 import ph.edu.rv_realm_quiz.realm.RealmDatabase
 import java.text.SimpleDateFormat
@@ -30,7 +31,8 @@ class BooksAdapter(
     private var booksList: ArrayList<Books>,
     private val context: Context,
     private val bookAdapterCallback: BooksAdapterInterface,
-) : RecyclerView.Adapter<BooksAdapter.BookViewHolder>(), ItemTouchHelperAdapter {
+    private var fragmentManager: FragmentManager
+) : RecyclerView.Adapter<BooksAdapter.BookViewHolder>(), ItemTouchHelperAdapter, UpdateBookDialog.RefreshDataInterface {
 
     private lateinit var book: Books
     private var database = RealmDatabase()
@@ -44,8 +46,13 @@ class BooksAdapter(
         fun refreshData()
     }
 
+
     fun setBook(book: Books) {
         this.book = book
+    }
+
+    override fun refreshData() {
+
     }
 
     inner class BookViewHolder(private val binding: ContentBooksRvBinding) :
@@ -55,6 +62,8 @@ class BooksAdapter(
             with(binding) {
                 txtBookName.text = String.format("Book: %s", book.bookName)
                 txtAuthor.text = String.format("Author: %s", book.author)
+                txtPages.text = String.format("Pages: %s", book.pages)
+                txtProgress.text = String.format("Progress: %s", book.progress)
                 txtPublished.text =
                     String.format("Date Published: %s", formatDate(book.dateBookPublished))
                 txtAdded.text = String.format("Date Added: %s", formatDate(book.dateBookAdded))
@@ -74,20 +83,17 @@ class BooksAdapter(
                             bookAdapterCallback.refreshData()
                         }
                     }
+                }
 
-
-//                btnEditOwner.isEnabled = itemData.name != "Lotus"
-//
-//                btnEditOwner.setOnClickListener {
-//                    val editOwnerDialog = EditOwner()
-//                    editOwnerDialog.refreshDataCallback = object : EditPet.RefreshDataInterface{
-//                        override fun refreshData() {
-//                            ownerAdapterCallback.refreshData()
-//                        }
-//                    }
-//                    editOwnerDialog.bindOwnerData(itemData)
-//                    editOwnerDialog.show(fragmentManager, null)
-//                }
+                btnToUpdate.setOnClickListener {
+                    val updateBookDialog = UpdateBookDialog()
+                    updateBookDialog.refreshDataCallback = object : UpdateBookDialog.RefreshDataInterface {
+                        override fun refreshData() {
+                            bookAdapterCallback.refreshData()
+                        }
+                    }
+                    updateBookDialog.bindBook(book)
+                    updateBookDialog.show(fragmentManager, "UpdateBookDialog")
                 }
             }
         }
@@ -96,11 +102,6 @@ class BooksAdapter(
     private fun formatDate(date: Date): String {
         val formatter = SimpleDateFormat("MMMM d, yyyy", Locale.getDefault())
         return formatter.format(date)
-    }
-
-    fun LocalDate.formatted(): String {
-        val formatter = DateTimeFormatter.ofPattern("MMMM d, yyyy")
-        return format(formatter)
     }
 
 
